@@ -4,6 +4,12 @@ const overviewDiv = document.querySelector(".overview");
 // select the unordered list to display the repos list
 const ulRepoList = document.querySelector(".repo-list")
 
+// where all my repo information appears
+const sectionRepos = document.querySelector(".repos");
+
+// where the individual repo data will appear
+const sectionRepoData = document.querySelector(".repo-data")
+
 // my personal github username
 const username = "gaelporteu";
 
@@ -62,5 +68,57 @@ const displayEachRepo = repos => {
         ulRepoList.append(li)
     })
     
+}
+
+// click event on the unordered list with a class of "repo-list"
+ulRepoList.addEventListener("click", e => {
+    if (e.target.matches("h3")) {
+
+        // target the innerText where the event happens
+        const repoName = e.target.innerText;
+        getSpecificRepo(repoName);
+    }
+
+})
+
+// async function to get specific repo information that accepts repoName as a parameter
+const getSpecificRepo = async repoName => {
+    const response = await fetch(`https://api.github.com/repos/${username}/${repoName}`);
+
+    const repoInfo = await response.json();
+
+    console.log(repoInfo);
+
+    const fetchLanguages = await fetch(repoInfo.languages_url)
+
+    const languageData = await fetchLanguages.json();
+
+    const languages = [];
+    for (const lang in languageData){
+        languages.push(lang);
+    }
+
+    console.log(languages);
+
+    displayRepoInfo(repoInfo, languages);
+}
+
+const displayRepoInfo = (repoInfo, languages) => {
+    sectionRepoData.innerHTML = "";
+
+    const div = document.createElement("div");
+
+    div.innerHTML = `
+        <h3>${repoInfo.name}</h3>
+        <p>Description: ${repoInfo.description}</p>
+        <p>Default Branch: ${repoInfo.default_branch}</p>
+        <p>Languages: ${languages.join(", ")}</p>
+        <a href="${repoInfo.html_url}" class="visit" target="_blank" rel="noreferrer noopener">View Repo on Github!</a>
+    `
+    sectionRepoData.append(div)
+
+    sectionRepoData.classList.toggle("hide");
+
+    sectionRepos.classList.toggle("hide");
 }
 
